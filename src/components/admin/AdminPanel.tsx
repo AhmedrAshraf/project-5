@@ -10,11 +10,13 @@ import { SubscriptionManager } from './SubscriptionManager';
 import { TenantManager } from './TenantManager';
 import type { Order, MenuItem } from '../../types';
 import { supabase } from '../../lib/supabase';
+import { TenantContext } from '../../contexts/TenantContext';
 
 interface AdminPanelProps {
   onViewMenu: () => void;
   onReturnToAdmin: () => void;
   onLogout: () => void;
+  role?: string;
 }
 
 interface TimeSlot {
@@ -26,9 +28,10 @@ interface TimeSlot {
 }
 
 export function AdminPanel({ onViewMenu, onReturnToAdmin, onLogout }: AdminPanelProps) {
+  const { tenantUser } = React.useContext(TenantContext);
   const [activeTab, setActiveTab] = React.useState<
     'orders' | 'menu' | 'specials' | 'analytics' | 'timeslots' | 'settings' | 'subscription' | 'tenants'
-  >('tenants');
+  >('orders');
   const [orders, setOrders] = React.useState<Order[]>([]);
   const [menuItems, setMenuItems] = React.useState<MenuItem[]>([]);
   const [timeSlots, setTimeSlots] = React.useState<TimeSlot[]>([]);
@@ -45,6 +48,12 @@ export function AdminPanel({ onViewMenu, onReturnToAdmin, onLogout }: AdminPanel
   const [page, setPage] = React.useState(0);
   const [hasMore, setHasMore] = React.useState(true);
   const PAGE_SIZE = 20;
+
+  React.useEffect(() => {
+    if (tenantUser?.role === 'admin') {
+      setActiveTab('tenants');
+    }
+  }, [tenantUser?.role]);
 
   React.useEffect(() => {
     fetchOrders();
@@ -416,8 +425,17 @@ export function AdminPanel({ onViewMenu, onReturnToAdmin, onLogout }: AdminPanel
               </button>
             </div>
           </div>
-          <nav className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-2">
-            {['tenants', 'orders', 'menu', 'specials', 'analytics', 'timeslots', 'settings', 'subscription'].map((tab) => (
+          <nav className="flex flex-wrap gap-2">
+            {[
+              ...(tenantUser?.role === 'admin' ? ['tenants'] : []),
+              'orders',
+              'menu',
+              'specials',
+              'analytics',
+              'timeslots',
+              'settings',
+              'subscription'
+            ].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab as typeof activeTab)}
@@ -427,6 +445,7 @@ export function AdminPanel({ onViewMenu, onReturnToAdmin, onLogout }: AdminPanel
                     : 'bg-white text-gray-700 hover:bg-gray-50'
                 }`}
               >
+                {tab === 'tenants' && 'Kunden'}
                 {tab === 'orders' && 'Bestellungen'}
                 {tab === 'menu' && 'Speisekarte'}
                 {tab === 'specials' && 'Tagesangebote'}
@@ -434,7 +453,6 @@ export function AdminPanel({ onViewMenu, onReturnToAdmin, onLogout }: AdminPanel
                 {tab === 'timeslots' && 'Öffnungszeiten'}
                 {tab === 'settings' && 'Einstellungen'}
                 {tab === 'subscription' && 'Abonnement'}
-                {tab === 'tenants' && 'Kunden'}
               </button>
             ))}
           </nav>
@@ -475,7 +493,7 @@ export function AdminPanel({ onViewMenu, onReturnToAdmin, onLogout }: AdminPanel
           <SubscriptionManager />
         )}
         
-        {activeTab === 'tenants' && (
+        {activeTab === 'tenants' && tenantUser?.role === 'admin' && (
           <TenantManager />
         )}
 
@@ -507,16 +525,24 @@ export function AdminPanel({ onViewMenu, onReturnToAdmin, onLogout }: AdminPanel
                     
                     const timeRestrictions: Record<string, boolean> = {};
                     timeSlots.forEach(slot => {
-                      const isChecked = (form.elements.namedItem(`timeSlot_${slot.id}`) as HTMLInputElement)?.checked || false;
-                      if (isChecked) {
-                        timeRestrictions[slot.id] = true;
-                      }
+                      timeRestrictions[slot.id] = (form.elements.namedItem(`timeSlot_${slot.id}`) as HTMLInputElement).checked;
                     });
                     
-                    if (new Date(validFrom) >= new Date(validUntil)) {
-                      alert('Das Enddatum muss nach dem Startdatum liegen.');
-                      return;
-                    }
+                    const newSpecial: DailySpecial = {
+                      id: uuidv4(),
+                      name,
+                      name_de,
+                      description,
+                      price,
+                      valid_from: validFrom,
+                      valid_until: validUntil,
+                      special_type: specialType,
+                      image_url: imageUrl,
+                      highlight_color: highlightColor,
+                      time_restrictions,
+                      created_at: new Date().toISOString(),
+                      updated_at: new Date().toISOString(),
+                    };
                     
                     handleAddDailySpecial(
                       name,
@@ -532,8 +558,10 @@ export function AdminPanel({ onViewMenu, onReturnToAdmin, onLogout }: AdminPanel
                     );
                     form.reset();
                   } catch (error) {
-                    console.error('Error adding daily menu item:', error);
-                    alert('Fehler beim Hinzufügen des Tagesgerichts. Bitte überprüfen Sie Ihre Eingaben.');
+                    console.error('Error creating special:', error);
+                    setError({
+                      message: 'Fehler beim Erstellen des Specials',
+                    });
                   }
                 }}
                 className="grid grid-cols-1 gap-4 sm:grid-cols-2"

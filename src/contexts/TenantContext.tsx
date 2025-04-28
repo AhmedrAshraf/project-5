@@ -52,76 +52,106 @@ interface TenantContextType {
     settings: TenantSettings;
     subscription: TenantSubscription;
   } | null;
+  tenantUser: any;
   loading: boolean;
   error: string | null;
 }
 
 export const TenantContext = React.createContext<TenantContextType>({
   tenant: null,
+  tenantUser: null,
   loading: true,
   error: null 
 });
 
 export function TenantProvider({ children }: { children: React.ReactNode }) {
-  const [tenant, setTenant] = React.useState<TenantContextType['tenant']>(null);
+  const [tenant, setTenant] = React.useState<Tenant | null>(null);
+  const [tenantUser, setTenantUser] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
   const getSubdomain = () => {
     const hostname = window.location.hostname;
     
-    return 'lyja'; // Always return default tenant for now
+    // If we're on localhost, use 'lyja' as default
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'sulaiman-ahmedashraf';
+    }
+    
+    // Extract subdomain from hostname
+    // e.g., 'test.lyja-resort.com' -> 'test'
+    const parts = hostname.split('.');
+    if (parts.length > 2) {
+      return parts[0];
+    }
+    
+    // If no subdomain found, use default
+    return 'lyja';
   };
 
   React.useEffect(() => {
     const fetchTenant = async () => {
       try {
-        setLoading(true);
-        setError(null);
-        
         const subdomain = getSubdomain();
+        console.log('Fetching tenant for subdomain:', subdomain);
+        
+        // First get the tenant
+        const { data: tenantData, error: tenantError } = await supabase
+          .from('tenants')
+          .select('*')
+          .eq('subdomain', subdomain)
+          .single();
 
-        if (!subdomain) {
-          setError('Invalid hostname configuration');
+        console.log('Tenant query result:', { tenantData, error: tenantError });
+
+        if (tenantError) {
+          console.error('Error fetching tenant:', tenantError);
+          setError(tenantError.message);
+          setLoading(false);
           return;
         }
 
-        const { data, error: queryError } = await supabase
-          .from('tenants')
-          .select(`
-            *,
-            subscriptions!tenants_subscription_id_fkey (
-              tier,
-              max_users,
-              max_orders_per_month,
-              custom_domain_enabled,
-              white_label_enabled,
-              api_access_enabled
-            )
-          `)
-          .eq('subdomain', subdomain.toLowerCase())
-          .maybeSingle();
-
-        if (queryError) {
-          throw queryError;
+        if (!tenantData) {
+          console.error('No tenant found for subdomain:', subdomain);
+          setError('No tenant found');
+          setLoading(false);
+          return;
         }
 
-        setTenant(data);
-        setError(null);
+        setTenant(tenantData);
+        console.log('Tenant set:', tenantData);
+
+        // Then get the tenant user
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          console.log('Fetching tenant user for auth ID:', user.id);
+          const { data: tenantUserData, error: tenantUserError } = await supabase
+            .from('tenant_users')
+            .select('*')
+            .eq('auth_user_id', user.id)
+            .eq('tenant_id', tenantData.id)
+            .single();
+
+          console.log('Tenant user query result:', { tenantUserData, error: tenantUserError });
+
+          if (tenantUserError) {
+            console.error('Error fetching tenant user:', tenantUserError);
+            setError(tenantUserError.message);
+          } else if (tenantUserData) {
+            setTenantUser(tenantUserData);
+            console.log('Tenant user set:', tenantUserData);
+          }
+        }
+
+        setLoading(false);
       } catch (err) {
-        console.error('Error fetching tenant:', err);
-        setError('Failed to load configuration');
-        setTenant(null);
-      } finally {
+        console.error('Error in fetchTenant:', err);
+        setError(err instanceof Error ? err.message : 'An error occurred');
         setLoading(false);
       }
     };
 
     fetchTenant();
-
-    const interval = setInterval(fetchTenant, 30000); // Refresh every 30 seconds
-    
-    return () => clearInterval(interval);
   }, []);
 
   // Apply theme settings
@@ -142,8 +172,18 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
     }
   }, [tenant?.settings.theme]);
 
+  const value = React.useMemo(
+    () => ({
+      tenant,
+      tenantUser,
+      loading,
+      error,
+    }),
+    [tenant, tenantUser, loading, error]
+  );
+
   return (
-    <TenantContext.Provider value={{ tenant, loading, error }}>
+    <TenantContext.Provider value={value}>
       {children}
     </TenantContext.Provider>
   );

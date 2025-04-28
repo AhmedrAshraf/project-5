@@ -282,15 +282,15 @@ export function TenantManager() {
                     </p>
                     <p className="flex items-center gap-2">
                       <Mail className="w-4 h-4" />
-                      {tenant.settings.contact_info.email}
+                      {tenant?.settings?.contact_info?.email}
                     </p>
                     <p className="flex items-center gap-2">
                       <Phone className="w-4 h-4" />
-                      {tenant.settings.contact_info.phone}
+                      {tenant?.settings?.contact_info?.phone}
                     </p>
                     <p className="flex items-center gap-2">
                       <Users className="w-4 h-4" />
-                      {tenant.tenant_users?.length || 0} Benutzer
+                      {tenant?.tenant_users?.length || 0} Benutzer
                     </p>
                   </div>
                 </div>
@@ -298,7 +298,7 @@ export function TenantManager() {
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-gray-500">Erstellt am:</span>
                     <span className="text-sm font-medium">
-                      {new Date(tenant.created_at).toLocaleDateString()}
+                      `{new Date(tenant.created_at).toLocaleDateString()}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">

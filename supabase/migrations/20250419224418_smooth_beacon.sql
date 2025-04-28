@@ -61,6 +61,13 @@ CREATE POLICY "Tenants can view their own record"
   TO authenticated
   USING (id = get_current_tenant_id());
 
+-- Add policy to allow new tenant creation during signup
+CREATE POLICY "Allow new tenant creation during signup"
+  ON tenants
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (true);
+
 -- Drop existing policies
 DROP POLICY IF EXISTS "Allow authenticated users to manage menu items" ON menu_items;
 DROP POLICY IF EXISTS "Allow public read access to menu_items" ON menu_items;

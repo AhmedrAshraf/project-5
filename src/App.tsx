@@ -14,13 +14,13 @@ import { AdminPanel } from './components/admin/AdminPanel';
 import { AuthProvider } from './components/auth/AuthProvider';
 import { SignIn } from './components/auth/SignIn';
 import { SignUp } from './components/auth/SignUp';
-import { AuthContext } from './hooks/AuthProvider';
+import { useAuth } from './hooks/useAuth';
 import type { MenuItem, OrderItem } from './types';
 
 function App() {
   const navigate = useNavigate();
   const [view, setView] = React.useState<'welcome' | 'food' | 'drinks' | 'admin' | 'success' | 'cart' | 'signin' | 'signup'>('welcome');
-  const { user, signOut } = AuthContext();
+  const { user, signIn, signOut } = useAuth();
   const [loginError, setLoginError] = React.useState<string>();
   const [cartItems, setCartItems] = React.useState<OrderItem[]>(() => {
     const savedCart = localStorage.getItem('cart');
@@ -189,36 +189,44 @@ function App() {
     loadData();
   }, [selectedCategory]);
 
+  React.useEffect(() => {
+    if (user) {
+      // Check if user has admin access
+      const checkAdminAccess = async () => {
+        try {
+          const { data: tenantUser, error: tenantError } = await supabase
+            .from('tenant_users')
+            .select('role')
+            .eq('auth_user_id', user.id)
+            .single();
+
+          if (tenantError) throw tenantError;
+
+          if (tenantUser && ['owner', 'admin'].includes(tenantUser.role)) {
+            navigate('/admin');
+          } else {
+            setLoginError('Sie haben keine Berechtigung für den Administratorzugang');
+            signOut();
+          }
+        } catch (err) {
+          console.error('Error checking admin access:', err);
+          setLoginError('Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.');
+          signOut();
+        }
+      };
+
+      checkAdminAccess();
+    }
+  }, [user, navigate, signOut]);
+
   const handleLogin = async (email: string, password: string) => {
     try {
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (authError) throw authError;
-      
-      // Check if user has admin access
-      const { data: tenantUser, error: tenantError } = await supabase
-        .from('tenant_users')
-        .select('role')
-        .eq('auth_user_id', authData.user?.id)
-        .single();
-
-      if (tenantError) throw tenantError;
-
-      if (!tenantUser || !['owner', 'admin'].includes(tenantUser.role)) {
-        throw new Error('Unauthorized: Insufficient permissions');
-      }
-
-      setView('admin');
       setLoginError(undefined);
+      await signIn(email, password);
     } catch (err) {
       console.error('Login error:', err);
       if (err instanceof Error) {
-        setLoginError(err.message.includes('Unauthorized') 
-          ? 'Sie haben keine Berechtigung für den Administratorzugang'
-          : 'Ungültige Anmeldedaten. Bitte überprüfen Sie Ihre E-Mail-Adresse und Ihr Passwort.');
+        setLoginError('Ungültige Anmeldedaten. Bitte überprüfen Sie Ihre E-Mail-Adresse und Ihr Passwort.');
       } else {
         setLoginError('Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.');
       }
