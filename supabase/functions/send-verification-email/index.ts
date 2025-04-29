@@ -52,20 +52,20 @@ serve(async (req) => {
     if (updateError) throw updateError;
 
     // Get email template
-    const template = tenant.email_templates.verification;
+    const template = tenant?.email_templates?.verification;
     
     // Get the base URL from environment variable or use the tenant's domain
     const baseUrl = Deno.env.get('PUBLIC_URL') || 
-      (tenant.settings?.base_url ? tenant.settings.base_url : 'https://your-production-domain.com');
+      (tenant?.settings?.base_url ? tenant?.settings?.base_url : 'https://your-production-domain.com');
     
     // Generate verification URL
     const verificationLink = `${baseUrl}/verify-email?token=${verificationToken}&tenant=${tenant_id}`;
     
     // Replace template variables
-    const subject = template.subject.replace('{tenant_name}', tenant.name);
-    const content = template.content
-      .replace('{tenant_name}', tenant.name)
-      .replace('{verification_link}', verificationLink);
+    const subject = template?.subject?.replace('{tenant_name}', tenant?.name || '');
+    const content = template?.content
+      ?.replace('{tenant_name}', tenant?.name || '')
+      ?.replace('{verification_link}', verificationLink);
 
     // Send email
     const transporter = nodemailer.createTransport({
@@ -81,8 +81,8 @@ serve(async (req) => {
     await transporter.sendMail({
       from: Deno.env.get('SMTP_FROM'),
       to: email,
-      subject,
-      text: content
+      subject: subject || 'Verify your email',
+      text: content || `Please click the link below to verify your email:\n\n${verificationLink}\n\nThis link will expire in 24 hours.`
     });
 
     return new Response(

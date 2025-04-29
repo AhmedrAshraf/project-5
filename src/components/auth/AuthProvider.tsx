@@ -150,27 +150,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.error('Auth signup error:', authError);
             throw authError;
           }
-          if (!authData.user) {
+          if (!authData?.user) {
             console.error('No user data returned from auth signup');
             throw new Error('No user data returned');
           }
 
           // Check if email confirmation is required
-          console.log('Checking user identities:', authData.user.identities);
-          if (authData.user.identities?.length === 0) {
+          console.log('Checking user identities:', authData?.user?.identities);
+          if (authData?.user?.identities?.length === 0) {
             console.log('User already exists, redirecting to sign in');
             throw new Error('Email already registered. Please sign in instead.');
           }
 
           // 2. Create a tenant for the user
-          console.log('Creating tenant for user:', authData.user.id);
+          console.log('Creating tenant for user:', authData?.user?.id);
           const { data: tenantData, error: tenantError } = await supabase
             .from('tenants')
             .insert([
               {
-                name: email.split('@')[0],
-                subdomain: email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '-'),
-                created_by: authData.user.id,
+                name: email?.split('@')?.[0],
+                subdomain: email?.split('@')?.[0]?.toLowerCase()?.replace(/[^a-z0-9]/g, '-'),
+                created_by: authData?.user?.id,
                 email: email,
                 is_active: true,
               }
@@ -191,12 +191,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             .from('tenant_users')
             .insert([
               {
-                auth_user_id: authData.user.id,
-                tenant_id: tenantData.id,
+                auth_user_id: authData?.user?.id,
+                tenant_id: tenantData?.id,
                 role: 'owner',
                 email: email,
-                first_name: email.split('@')[0].split('.')[0],
-                last_name: email.split('@')[0].split('.')[1] || '',
+                first_name: email?.split('@')?.[0]?.split('.')?.[0],
+                last_name: email?.split('@')?.[0]?.split('.')?.[1] || '',
                 is_active: true,
                 email_verified: false,
                 last_login_at: new Date().toISOString(),

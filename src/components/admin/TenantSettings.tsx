@@ -41,7 +41,7 @@ export function TenantSettings() {
 
   React.useEffect(() => {
     if (tenant?.settings) {
-      setSettings(tenant.settings);
+      setSettings(tenant?.settings);
     }
   }, [tenant?.settings]);
 
@@ -188,43 +188,61 @@ export function TenantSettings() {
         <div className="space-y-6">
           <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
             <Palette className="w-5 h-5 text-accent" />
-            Design
+            Theme
           </h3>
           
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Primärfarbe
+                Primary Color
               </label>
               <input
                 type="color"
-                value={settings.theme.primary_color}
+                value={settings?.theme?.primary_color || '#b5a49b'}
                 onChange={(e) => setSettings({
                   ...settings,
                   theme: {
-                    ...settings.theme,
+                    ...settings?.theme,
                     primary_color: e.target.value
                   }
                 })}
-                className="h-10 w-full rounded-lg border border-gray-200"
+                className="elegant-input"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Sekundärfarbe
+                Secondary Color
               </label>
               <input
                 type="color"
-                value={settings.theme.secondary_color}
+                value={settings?.theme?.secondary_color || '#a39288'}
                 onChange={(e) => setSettings({
                   ...settings,
                   theme: {
-                    ...settings.theme,
+                    ...settings?.theme,
                     secondary_color: e.target.value
                   }
                 })}
-                className="h-10 w-full rounded-lg border border-gray-200"
+                className="elegant-input"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Font Family
+              </label>
+              <input
+                type="text"
+                value={settings?.theme?.font_family || 'Playfair Display'}
+                onChange={(e) => setSettings({
+                  ...settings,
+                  theme: {
+                    ...settings?.theme,
+                    font_family: e.target.value
+                  }
+                })}
+                className="elegant-input"
               />
             </div>
 
@@ -234,11 +252,11 @@ export function TenantSettings() {
               </label>
               <input
                 type="url"
-                value={settings.theme.logo_url || ''}
+                value={settings?.theme?.logo_url || ''}
                 onChange={(e) => setSettings({
                   ...settings,
                   theme: {
-                    ...settings.theme,
+                    ...settings?.theme,
                     logo_url: e.target.value || null
                   }
                 })}
@@ -253,11 +271,11 @@ export function TenantSettings() {
               </label>
               <input
                 type="url"
-                value={settings.theme.favicon_url || ''}
+                value={settings?.theme?.favicon_url || ''}
                 onChange={(e) => setSettings({
                   ...settings,
                   theme: {
-                    ...settings.theme,
+                    ...settings?.theme,
                     favicon_url: e.target.value || null
                   }
                 })}
@@ -284,13 +302,13 @@ export function TenantSettings() {
                 <div>
                   <input
                     type="time"
-                    value={settings.business_hours.monday_friday.open}
+                    value={settings?.business_hours?.monday_friday?.open || '08:00'}
                     onChange={(e) => setSettings({
                       ...settings,
                       business_hours: {
-                        ...settings.business_hours,
+                        ...settings?.business_hours,
                         monday_friday: {
-                          ...settings.business_hours.monday_friday,
+                          ...settings?.business_hours?.monday_friday,
                           open: e.target.value
                         }
                       }
@@ -301,13 +319,13 @@ export function TenantSettings() {
                 <div>
                   <input
                     type="time"
-                    value={settings.business_hours.monday_friday.close}
+                    value={settings?.business_hours?.monday_friday?.close || '22:00'}
                     onChange={(e) => setSettings({
                       ...settings,
                       business_hours: {
-                        ...settings.business_hours,
+                        ...settings?.business_hours,
                         monday_friday: {
-                          ...settings.business_hours.monday_friday,
+                          ...settings?.business_hours?.monday_friday,
                           close: e.target.value
                         }
                       }
@@ -326,13 +344,13 @@ export function TenantSettings() {
                 <div>
                   <input
                     type="time"
-                    value={settings.business_hours.saturday.open}
+                    value={settings?.business_hours?.saturday?.open || '09:00'}
                     onChange={(e) => setSettings({
                       ...settings,
                       business_hours: {
-                        ...settings.business_hours,
+                        ...settings?.business_hours,
                         saturday: {
-                          ...settings.business_hours.saturday,
+                          ...settings?.business_hours?.saturday,
                           open: e.target.value
                         }
                       }
@@ -343,13 +361,13 @@ export function TenantSettings() {
                 <div>
                   <input
                     type="time"
-                    value={settings.business_hours.saturday.close}
+                    value={settings?.business_hours?.saturday?.close || '22:00'}
                     onChange={(e) => setSettings({
                       ...settings,
                       business_hours: {
-                        ...settings.business_hours,
+                        ...settings?.business_hours,
                         saturday: {
-                          ...settings.business_hours.saturday,
+                          ...settings?.business_hours?.saturday,
                           close: e.target.value
                         }
                       }
@@ -368,13 +386,13 @@ export function TenantSettings() {
                 <div>
                   <input
                     type="time"
-                    value={settings.business_hours.sunday.open}
+                    value={settings?.business_hours?.sunday?.open || '09:00'}
                     onChange={(e) => setSettings({
                       ...settings,
                       business_hours: {
-                        ...settings.business_hours,
+                        ...settings?.business_hours,
                         sunday: {
-                          ...settings.business_hours.sunday,
+                          ...settings?.business_hours?.sunday,
                           open: e.target.value
                         }
                       }
@@ -385,13 +403,13 @@ export function TenantSettings() {
                 <div>
                   <input
                     type="time"
-                    value={settings.business_hours.sunday.close}
+                    value={settings?.business_hours?.sunday?.close || '21:00'}
                     onChange={(e) => setSettings({
                       ...settings,
                       business_hours: {
-                        ...settings.business_hours,
+                        ...settings?.business_hours,
                         sunday: {
-                          ...settings.business_hours.sunday,
+                          ...settings?.business_hours?.sunday,
                           close: e.target.value
                         }
                       }
@@ -418,15 +436,15 @@ export function TenantSettings() {
               </label>
               <input
                 type="tel"
-                value={settings.contact_info.phone || ''}
+                value={settings?.contact_info?.phone || ''}
                 onChange={(e) => setSettings({
                   ...settings,
                   contact_info: {
-                    ...settings.contact_info,
+                    ...settings?.contact_info,
                     phone: e.target.value || null
                   }
                 })}
-                placeholder="+49 123 456789"
+                placeholder="+491234567890"
                 className="elegant-input"
               />
             </div>
@@ -437,11 +455,11 @@ export function TenantSettings() {
               </label>
               <input
                 type="email"
-                value={settings.contact_info.email || ''}
+                value={settings?.contact_info?.email || ''}
                 onChange={(e) => setSettings({
                   ...settings,
                   contact_info: {
-                    ...settings.contact_info,
+                    ...settings?.contact_info,
                     email: e.target.value || null
                   }
                 })}
@@ -455,17 +473,91 @@ export function TenantSettings() {
                 Adresse
               </label>
               <textarea
-                value={settings.contact_info.address || ''}
+                value={settings?.contact_info?.address || ''}
                 onChange={(e) => setSettings({
                   ...settings,
                   contact_info: {
-                    ...settings.contact_info,
+                    ...settings?.contact_info,
                     address: e.target.value || null
                   }
                 })}
-                placeholder="Straße 123&#10;12345 Stadt"
-                className="elegant-input min-h-[100px]"
+                placeholder="Straße, Hausnummer, PLZ, Stadt"
+                className="elegant-input"
+                rows={3}
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Social Media
+              </label>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Facebook
+                  </label>
+                  <input
+                    type="url"
+                    value={settings?.contact_info?.social_media?.facebook || ''}
+                    onChange={(e) => setSettings({
+                      ...settings,
+                      contact_info: {
+                        ...settings?.contact_info,
+                        social_media: {
+                          ...settings?.contact_info?.social_media,
+                          facebook: e.target.value || null
+                        }
+                      }
+                    })}
+                    placeholder="https://facebook.com/yourpage"
+                    className="elegant-input"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Instagram
+                  </label>
+                  <input
+                    type="url"
+                    value={settings?.contact_info?.social_media?.instagram || ''}
+                    onChange={(e) => setSettings({
+                      ...settings,
+                      contact_info: {
+                        ...settings?.contact_info,
+                        social_media: {
+                          ...settings?.contact_info?.social_media,
+                          instagram: e.target.value || null
+                        }
+                      }
+                    })}
+                    placeholder="https://instagram.com/yourpage"
+                    className="elegant-input"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Twitter
+                  </label>
+                  <input
+                    type="url"
+                    value={settings?.contact_info?.social_media?.twitter || ''}
+                    onChange={(e) => setSettings({
+                      ...settings,
+                      contact_info: {
+                        ...settings?.contact_info,
+                        social_media: {
+                          ...settings?.contact_info?.social_media,
+                          twitter: e.target.value || null
+                        }
+                      }
+                    })}
+                    placeholder="https://twitter.com/yourpage"
+                    className="elegant-input"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -473,19 +565,19 @@ export function TenantSettings() {
         {/* Features */}
         <div className="space-y-6">
           <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
-            <Settings className="w-5 h-5 text-accent" />
-            Funktionen
+            <Star className="w-5 h-5 text-accent" />
+            Features
           </h3>
           
           <div className="space-y-4">
             <label className="flex items-center space-x-3">
               <input
                 type="checkbox"
-                checked={settings.features.room_service}
+                checked={settings?.features?.room_service || false}
                 onChange={(e) => setSettings({
                   ...settings,
                   features: {
-                    ...settings.features,
+                    ...settings?.features,
                     room_service: e.target.checked
                   }
                 })}
@@ -497,11 +589,11 @@ export function TenantSettings() {
             <label className="flex items-center space-x-3">
               <input
                 type="checkbox"
-                checked={settings.features.pool_service}
+                checked={settings?.features?.pool_service || false}
                 onChange={(e) => setSettings({
                   ...settings,
                   features: {
-                    ...settings.features,
+                    ...settings?.features,
                     pool_service: e.target.checked
                   }
                 })}
@@ -513,11 +605,11 @@ export function TenantSettings() {
             <label className="flex items-center space-x-3">
               <input
                 type="checkbox"
-                checked={settings.features.bar_service}
+                checked={settings?.features?.bar_service || false}
                 onChange={(e) => setSettings({
                   ...settings,
                   features: {
-                    ...settings.features,
+                    ...settings?.features,
                     bar_service: e.target.checked
                   }
                 })}
@@ -529,11 +621,11 @@ export function TenantSettings() {
             <label className="flex items-center space-x-3">
               <input
                 type="checkbox"
-                checked={settings.features.spa_services}
+                checked={settings?.features?.spa_services || false}
                 onChange={(e) => setSettings({
                   ...settings,
                   features: {
-                    ...settings.features,
+                    ...settings?.features,
                     spa_services: e.target.checked
                   }
                 })}
@@ -545,11 +637,11 @@ export function TenantSettings() {
             <label className="flex items-center space-x-3">
               <input
                 type="checkbox"
-                checked={settings.features.preorders}
+                checked={settings?.features?.preorders || false}
                 onChange={(e) => setSettings({
                   ...settings,
                   features: {
-                    ...settings.features,
+                    ...settings?.features,
                     preorders: e.target.checked
                   }
                 })}
