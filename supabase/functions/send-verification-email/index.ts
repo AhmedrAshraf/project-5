@@ -53,7 +53,8 @@ serve(async (req) => {
 
     // Get email template
     const template = tenant.email_templates.verification;
-    const verificationLink = `${Deno.env.get('PUBLIC_URL')}/verify-email?token=${verificationToken}&tenant=${tenant_id}`;
+    const baseUrl = Deno.env.get('PUBLIC_URL') || 'https://your-production-domain.com';
+    const verificationLink = `${baseUrl}/verify-email?token=${verificationToken}&tenant=${tenant_id}`;
     
     // Replace template variables
     const subject = template.subject.replace('{tenant_name}', tenant.name);

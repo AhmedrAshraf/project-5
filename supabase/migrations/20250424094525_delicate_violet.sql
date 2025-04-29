@@ -55,6 +55,7 @@ AS $$
 DECLARE
   v_user_record tenant_users%ROWTYPE;
   v_token_uuid uuid;
+  v_base_url text;
 BEGIN
   -- Convert token to UUID
   v_token_uuid := convert_hex_to_uuid(token);
@@ -96,12 +97,15 @@ BEGIN
     updated_at = now()
   WHERE id = v_user_record.auth_user_id;
 
+  -- Get base URL from environment variable
+  v_base_url := current_setting('app.settings.base_url', true);
+
   -- Return success with redirect URL
   RETURN jsonb_build_object(
     'success', true,
     'redirect_to', COALESCE(
       redirect_to,
-      'http://localhost:5173/signin?verified=true'
+      v_base_url || '/signin?verified=true'
     )
   );
 END;
@@ -134,10 +138,10 @@ BEGIN
   WHERE auth_user_id = user_id
     AND tenant_id = tenant_id;
 
-  -- Get base URL from settings or use default
+  -- Get base URL from settings or use environment variable
   SELECT COALESCE(
     settings->>'base_url',
-    'http://localhost:5173'
+    current_setting('app.settings.base_url', true)
   ) INTO v_base_url
   FROM tenants
   WHERE id = tenant_id;
