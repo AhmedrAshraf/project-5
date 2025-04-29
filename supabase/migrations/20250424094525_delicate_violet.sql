@@ -124,6 +124,7 @@ AS $$
 DECLARE
   v_token uuid;
   v_base_url text;
+  v_verification_url text;
 BEGIN
   -- Generate new verification token
   v_token := gen_random_uuid();
@@ -146,13 +147,20 @@ BEGIN
   FROM tenants
   WHERE id = tenant_id;
 
-  -- Build verification URL
-  RETURN format(
-    '%s/verify-email?token=%s&redirect_to=%s',
+  -- Build verification URL using the tenant's base URL
+  v_verification_url := format(
+    '%s/verify-email?token=%s&tenant=%s',
     v_base_url,
     REPLACE(v_token::text, '-', ''),
-    COALESCE(redirect_to, v_base_url || '/signin')
+    tenant_id
   );
+
+  -- If redirect_to is provided, add it to the URL
+  IF redirect_to IS NOT NULL THEN
+    v_verification_url := v_verification_url || '&redirect_to=' || redirect_to;
+  END IF;
+
+  RETURN v_verification_url;
 END;
 $$;
 

@@ -127,13 +127,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           console.log('Starting signup process for email:', email);
           
+          // Get the current domain for verification
+          const currentDomain = window.location.origin;
+          
           // 1. Create the auth user with email confirmation
           console.log('Attempting to create auth user...');
           const { data: authData, error: authError } = await supabase.auth.signUp({
             email,
             password,
             options: {
-              emailRedirectTo: `${window.location.origin}/auth/callback`,
+              emailRedirectTo: `${currentDomain}/auth/callback`,
               data: {
                 email,
                 full_name: email.split('@')[0],

@@ -28,7 +28,7 @@ serve(async (req) => {
     // Get tenant settings
     const { data: tenant, error: tenantError } = await supabaseClient
       .from('tenants')
-      .select('name, email_templates')
+      .select('name, email_templates, settings')
       .eq('id', tenant_id)
       .single();
 
@@ -53,7 +53,12 @@ serve(async (req) => {
 
     // Get email template
     const template = tenant.email_templates.verification;
-    const baseUrl = Deno.env.get('PUBLIC_URL') || 'https://your-production-domain.com';
+    
+    // Get the base URL from environment variable or use the tenant's domain
+    const baseUrl = Deno.env.get('PUBLIC_URL') || 
+      (tenant.settings?.base_url ? tenant.settings.base_url : 'https://your-production-domain.com');
+    
+    // Generate verification URL
     const verificationLink = `${baseUrl}/verify-email?token=${verificationToken}&tenant=${tenant_id}`;
     
     // Replace template variables
